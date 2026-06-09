@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose')
+
 
 const otpSchema = new mongoose.Schema({
     leetcodeUsername: {
@@ -19,5 +20,4 @@ const otpSchema = new mongoose.Schema({
         expires: 600  // Auto-delete after 10 minutes (600 seconds)
     }
 });
-
-export default mongoose.model('OTP', otpSchema);
+module.exports = otpSchema;

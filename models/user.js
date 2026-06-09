@@ -1,41 +1,51 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
-    // Core identification
     leetcodeUsername: {
         type: String,
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
     },
+
     telegramChatId: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
     },
 
-    // Tracking
     lastSolvedCount: {
         type: Number,
-        default: null
-    },
-    lastCheckDate: {
-        type: String,  // Format: YYYY-MM-DD
-        default: null
+        required: true,
     },
 
-    // Status
+    lastCheckDate: {
+        type: Date,
+        default: null,
+    },
+
+    reminderLevel: {
+        type: Number,
+        default: 0,
+    },
+
+    lastReminderSentAt: {
+        type: Date,
+        default: null,
+    },
+
     isActive: {
         type: Boolean,
-        default: true
+        default: true,
     },
 
-    // When they registered
     registeredAt: {
         type: Date,
-        default: Date.now
-    }
+        default: Date.now,
+    },
 });
 
-export default mongoose.model('User', userSchema);
+userSchema.index({ isActive: 1 });
+
+module.exports = userSchema
