@@ -7,7 +7,10 @@ const router = express.Router();
 router
     .route('/')
     .post(userController.createUser)
-    .get(userController.getAllUsers);
+    .get(userController.getAllUsers)
+
+
+    ;
 
 
 router.get("/test-telegram", async (req, res) => {

@@ -1,5 +1,39 @@
 const User = require('../models/User');
 
+
+exports.register = async (req, res) => {
+    try {
+        const {
+            leetcodeUsername,
+            telegramChatId,
+            lastSolvedCount,
+            isActive
+        } = req.body;
+
+        const user = await User.create({
+            leetcodeUsername,
+            telegramChatId,
+            lastSolvedCount,
+            isActive
+        });
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                user
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+
+
+
+
 // Getting all user and single user is not done due to security purpose will be done when needed
 
 exports.createUser = async (req, res) => {
@@ -92,3 +126,4 @@ exports.deleteUser = async (req, res) => {
         });
     }
 };
+
