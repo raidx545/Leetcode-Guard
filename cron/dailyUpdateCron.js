@@ -5,10 +5,10 @@ const {
 } = require("../services/dailyUpdateService");
 
 cron.schedule(
-    "5 1 * * *",
+    "30 5 * * *",  // Runs at 12:00 AM UTC = 5:30 AM IST
     async () => {
         console.log(
-            "Running daily update job"
+            "Running daily update job at 5:30 AM IST"
         );
 
         await updateAllUsers();

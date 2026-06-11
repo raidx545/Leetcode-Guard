@@ -68,6 +68,21 @@ router
     ;
 
 
+router.get('/reset-reminder/:id', async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    user.lastReminderDate = null;
+
+    await user.save();
+
+    res.json({
+        success: true,
+        message: 'Reminder reset'
+    });
+});
+
+
+
 const { checkAllUsers } = require("../services/checkAllUsers");
 
 router.get("/check-all", async (req, res) => {
