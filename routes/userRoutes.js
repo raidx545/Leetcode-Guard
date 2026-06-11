@@ -5,6 +5,10 @@ const User = require('../models/User');
 const telegramService = require('../services/telegramService');
 const { checkUser } = require('../services/reminderService');
 const { getTotalSolved } = require('../services/leetcodeService');
+const {
+    updateAllUsers
+} = require("../services/dailyUpdateService");
+
 const router = express.Router();
 
 
@@ -25,6 +29,27 @@ router.get("/test-telegram", async (req, res) => {
         });
     }
 });
+
+
+router.get(
+    "/test-daily-update",
+    async (req, res) => {
+        try {
+            await updateAllUsers();
+
+            res.json({
+                success: true,
+                message:
+                    "Daily update completed"
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+);
 
 router.get('/test-reminder/:id', async (req, res) => {
     const user = await User.findById(req.params.id);
@@ -48,6 +73,7 @@ const { checkAllUsers } = require("../services/checkAllUsers");
 router.get("/check-all", async (req, res) => {
     try {
         await checkAllUsers();
+
 
         res.json({
             success: true,

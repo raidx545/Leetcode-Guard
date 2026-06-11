@@ -1,31 +1,64 @@
-const User = require('../models/User');
+const User = require("../models/User");
+const { getTotalSolved } = require("../services/leetcodeService");
 
 
 exports.register = async (req, res) => {
     try {
         const {
             leetcodeUsername,
-            telegramChatId,
-            lastSolvedCount,
-            isActive
+            telegramChatId
         } = req.body;
+
+        if (!leetcodeUsername || !telegramChatId) {
+            return res.status(400).json({
+                status: "fail",
+                message: "LeetCode username and Telegram Chat ID are required"
+            });
+        }
+
+        const lcData = await getTotalSolved(
+            leetcodeUsername
+        );
+
+        const existingUser = await User.findOne({
+            leetcodeUsername: leetcodeUsername.toLowerCase()
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                status: "fail",
+                message: "LeetCode username already registered"
+            });
+        }
+
+        const existingTelegram = await User.findOne({
+            telegramChatId
+        });
+
+        if (existingTelegram) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Telegram account already registered"
+            });
+        }
 
         const user = await User.create({
             leetcodeUsername,
             telegramChatId,
-            lastSolvedCount,
-            isActive
+            lastSolvedCount: lcData.totalSolved,
+            isActive: true
         });
 
         res.status(201).json({
-            status: 'success',
+            status: "success",
             data: {
                 user
             }
         });
+
     } catch (err) {
         res.status(400).json({
-            status: 'fail',
+            status: "fail",
             message: err.message
         });
     }
@@ -33,12 +66,16 @@ exports.register = async (req, res) => {
 
 
 
-
 // Getting all user and single user is not done due to security purpose will be done when needed
 
 exports.createUser = async (req, res) => {
     try {
-        const user = await User.create(req.body);
+        const user = await User.create({
+            leetcodeUsername,
+            telegramChatId,
+            lastSolvedCount: lcData.totalSolved,
+            isActive: true
+        });
         res.status(201).json({
             status: 'success',
             data: {

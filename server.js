@@ -1,4 +1,6 @@
 require("./cron/reminderCron");
+require("./cron/dailyUpdateCron");
+
 const app = require('./app');
 const PORT = process.env.PORT || 3001;
 const connectDB = require('./config/db')

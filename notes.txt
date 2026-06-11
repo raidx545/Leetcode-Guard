@@ -1,0 +1,588 @@
+├── config
+│   └── db.js
+├── controllers
+│   └── userController.js
+├── cron
+│   ├── dailyUpdateCron.js
+│   └── reminderCron.js
+├── models
+│   └── User.js
+├── routes
+│   ├── authRoutes.js
+│   └── userRoutes.js
+├── services
+│   ├── checkAllUsers.js
+│   ├── dailyUpdateService.js
+│   ├── leetcodeService.js
+│   ├── reminderService.js
+│   └── telegramService.js
+├── src
+├── .gitignore
+├── README.md
+├── app.js
+├── notes.txt
+├── package-lock.json
+├── package.json
+└── server.js
+
+
+
+userController:
+const User = require('../models/User');
+
+
+exports.register = async (req, res) => {
+    try {
+        const {
+            leetcodeUsername,
+            telegramChatId,
+            lastSolvedCount,
+            isActive
+        } = req.body;
+
+        const user = await User.create({
+            leetcodeUsername,
+            telegramChatId,
+            lastSolvedCount,
+            isActive
+        });
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                user
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+
+
+
+
+// Getting all user and single user is not done due to security purpose will be done when needed
+
+exports.createUser = async (req, res) => {
+    try {
+        const user = await User.create(req.body);
+        res.status(201).json({
+            status: 'success',
+            data: {
+                user
+            }
+        });
+
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find();
+
+        res.status(200).json({
+            status: 'succes',
+            results: users.length,
+            data: {
+                users
+            }
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+}
+
+
+
+exports.getUser = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'User not found'
+            });
+        }
+        res.status(200).json({
+            status: 'success',
+            data: {
+                user
+            }
+        })
+
+
+    } catch (err) {
+        res.status(400).json({
+            status: 'error',
+            message: 'User not found'
+        });
+    }
+};
+
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'User not found'
+            });
+        }
+
+        res.status(204).json({
+            status: 'success',
+            data: null
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+
+
+
+dailyUpdateCron:
+const cron = require("node-cron");
+
+const {
+    updateAllUsers
+} = require("../services/dailyUpdateService");
+
+cron.schedule(
+    "5 1 * * *",
+    async () => {
+        console.log(
+            "Running daily update job"
+        );
+
+        await updateAllUsers();
+    }
+);
+
+reminderCron:
+const cron = require("node-cron");
+const { checkAllUsers } = require("../services/checkAllUsers");
+
+cron.schedule("* * * * *", async () => {
+    console.log("Running reminder job");
+
+    await checkAllUsers();
+});
+
+models:
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema(
+    {
+        leetcodeUsername: {
+            type: String,
+            required: true,
+            trim: true,
+            lowercase: true,
+            unique: true
+        },
+        telegramChatId: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        lastSolvedCount: {
+            type: Number,
+            default: 0
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        lastReminderDate: {
+            type: String,
+            default: null
+        }
+    },
+
+    {
+        timestamps: true
+    }
+);
+
+module.exports = mongoose.model('User', userSchema);
+
+authRoutes:
+const express = require('express');
+const userController = require('../controllers/userController');
+
+const router = express.Router();
+router.post('/register', userController.register)
+
+module.exports = router
+
+userRoutes:
+const express = require('express');
+const userController = require('../controllers/userController');
+const sendMessage = require('../services/telegramService')
+const User = require('../models/User');
+const telegramService = require('../services/telegramService');
+const { checkUser } = require('../services/reminderService');
+const { getTotalSolved } = require('../services/leetcodeService');
+const {
+    updateAllUsers
+} = require("../services/dailyUpdateService");
+
+const router = express.Router();
+
+
+router.get("/test-telegram", async (req, res) => {
+    try {
+        await sendMessage.sendMessage(
+            1248021575,
+            "Hello from LeetCode Tracker 🚀"
+        );
+
+        res.json({
+            status: "success"
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: "fail",
+            message: err.message
+        });
+    }
+});
+
+
+router.get(
+    "/test-daily-update",
+    async (req, res) => {
+        try {
+            await updateAllUsers();
+
+            res.json({
+                success: true,
+                message:
+                    "Daily update completed"
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+);
+
+router.get('/test-reminder/:id', async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    const result = await checkUser(user);
+
+    res.json(result);
+});
+
+router
+    .route('/')
+    .post(userController.createUser)
+    .get(userController.getAllUsers)
+
+
+    ;
+
+
+const { checkAllUsers } = require("../services/checkAllUsers");
+
+router.get("/check-all", async (req, res) => {
+    try {
+        await checkAllUsers();
+
+        res.json({
+            success: true,
+            message: "All users checked",
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+});
+
+
+
+router
+    .route('/:id')
+    .get(userController.getUser)
+    .delete(userController.deleteUser);
+
+
+module.exports = router;
+
+
+checkAllUsers:
+const User = require("../models/User");
+const { checkUser } = require("./reminderService");
+
+async function checkAllUsers() {
+    const users = await User.find({
+        isActive: true,
+    });
+
+    console.log(`Checking ${users.length} users`);
+
+    for (const user of users) {
+        try {
+            const result = await checkUser(user);
+
+            console.log(
+                `${user.leetcodeUsername} => ${result.reminded
+                    ? "Reminder Sent"
+                    : "Already Solved"
+                }`
+            );
+        } catch (error) {
+            console.error(
+                `${user.leetcodeUsername}`,
+                error.message
+            );
+        }
+    }
+}
+
+module.exports = {
+    checkAllUsers,
+};
+
+dailyUpdateCron:
+const User = require("../models/User");
+const { getTotalSolved } = require("./leetcodeService");
+
+async function updateAllUsers() {
+    const users = await User.find({
+        isActive: true
+    });
+
+    console.log(
+        `Updating ${users.length} users`
+    );
+
+    for (const user of users) {
+        try {
+            const data = await getTotalSolved(
+                user.leetcodeUsername
+            );
+
+            user.lastSolvedCount =
+                data.totalSolved;
+
+            user.lastReminderDate = null;
+
+            await user.save();
+
+            console.log(
+                `${user.leetcodeUsername} updated`
+            );
+        } catch (error) {
+            console.error(
+                `${user.leetcodeUsername}: ${error.message}`
+            );
+        }
+    }
+}
+
+module.exports = {
+    updateAllUsers
+};
+
+leetcodeService:
+/**
+ * Simple LeetCode Service - v1.1
+ * Just fetches total problems solved by a user
+ */
+
+async function getTotalSolved(username) {
+    // Validate username
+    if (!username || username.trim() === '') {
+        throw new Error('Username is required');
+    }
+
+    const query = `
+        query getUserProfile($username: String!) {
+            matchedUser(username: $username) {
+                submitStats: submitStatsGlobal {
+                    acSubmissionNum {
+                        difficulty
+                        count
+                    }
+                }
+            }
+        }
+    `;
+
+    try {
+        const response = await fetch('https://leetcode.com/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query,
+                variables: { username: username.trim() }
+            })
+        });
+
+        // Check HTTP status before parsing
+        if (!response.ok) {
+            throw new Error(`LeetCode API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Check if user exists
+        if (!data.data || !data.data.matchedUser) {
+            throw new Error('User not found');
+        }
+
+        // Safely extract total solved count
+        const stats = data.data.matchedUser.submitStats.acSubmissionNum;
+        const totalEntry = stats.find(s => s.difficulty === 'All');
+
+        if (!totalEntry) {
+            throw new Error('Could not retrieve solved count');
+        }
+
+        const totalSolved = totalEntry.count;
+
+        return {
+            username: username.trim(),
+            totalSolved: totalSolved
+        };
+
+    } catch (error) {
+        // Don't double-wrap errors - throw original message
+        throw new Error(error.message);
+    }
+}
+
+// Simple export for Node.js only
+module.exports = { getTotalSolved };
+
+reminderService:
+const { getTotalSolved } = require("./leetcodeService");
+const telegramService = require("./telegramService");
+
+async function checkUser(user) {
+    const data = await getTotalSolved(
+        user.leetcodeUsername
+    );
+
+    const totalSolved = data?.totalSolved ?? 0;
+
+    const today = new Date()
+        .toISOString()
+        .split("T")[0];
+
+    // User already got reminder today
+    if (user.lastReminderDate === today) {
+        return {
+            reminded: false,
+            reason: "Already reminded today",
+            currentSolved: totalSolved
+        };
+    }
+
+    const shouldRemind =
+        totalSolved <= user.lastSolvedCount;
+
+    if (shouldRemind) {
+        await telegramService.sendMessage(
+            user.telegramChatId,
+            `⚠️ Hey ${user.leetcodeUsername}, don't lose your streak!`
+        );
+
+        user.lastReminderDate = today;
+        await user.save();
+    }
+
+    return {
+        reminded: shouldRemind,
+        currentSolved: totalSolved
+    };
+}
+
+module.exports = { checkUser };
+
+telegramService:
+const axios = require("axios");
+
+const sendMessage = async (chatId, message) => {
+    try {
+        const url = `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`;
+
+        await axios.post(url, {
+            chat_id: chatId,
+            text: message,
+        });
+
+        return true;
+    } catch (error) {
+        console.error(error.response?.data || error.message);
+        return false;
+    }
+};
+
+module.exports = {
+    sendMessage,
+};
+
+app:
+const express = require('express');
+
+const app = express();
+
+
+const userRoutes = require('./routes/userRoutes');
+
+const authRoutes = require('./routes/authRoutes');
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/api/users', userRoutes);
+
+
+
+app.use('/api', authRoutes);
+
+
+module.exports = app;
+
+server:
+require("./cron/reminderCron");
+require("./cron/reminderCron");
+require("./cron/dailyUpdateCron");
+
+const app = require('./app');
+const PORT = process.env.PORT || 3001;
+const connectDB = require('./config/db')
+
+
+connectDB();
+app.listen(PORT, () => {
+    console.log(`Server is running on http://127.0.0.1:${PORT}/`)
+})
