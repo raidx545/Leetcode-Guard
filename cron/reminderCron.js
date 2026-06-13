@@ -1,17 +1,20 @@
 const cron = require("node-cron");
-const { checkAllUsers } = require("../services/checkAllUsers");
+const {
+    checkAllUsers
+} = require("../services/checkAllUsers");
+
+console.log("Reminder cron loaded");
 
 cron.schedule(
-    "0 22 * * *",  // 9:00 PM in specified timezone
+    "30 16 * * *",
     async () => {
-        console.log("Running reminder job at 10:00 PM IST");
+        console.log(
+            "Running reminder job at 16:30 UTC"
+        );
+
         await checkAllUsers();
     },
     {
-        timezone: "Asia/Kolkata"
+        timezone: "UTC",
     }
 );
-
-// real "30 16 * * *"
-
-// 9pm test 0 21 * * *

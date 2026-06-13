@@ -1,0 +1,136 @@
+Announcement Service(Flow from controller to service)
+
+Admin
+   │
+   │ POST /announce
+   ▼
+
+Controller
+   │
+   │ Extract message
+   │ Validate
+   ▼
+
+Announcement Service
+   │
+   │ Find active users
+   ▼
+
+User Collection (MongoDB)
+   │
+   ▼
+
+Loop through users
+   │
+   ├── Send Telegram Message
+   ├── success++
+   │
+   └── failed++ if error
+
+   ▼
+
+Return:
+{
+  success: X,
+  failed: Y
+}
+
+   ▼
+
+Controller
+
+   ▼
+
+JSON Response
+
+
+Axios:
+fetch mai data directly nhi ata hai ek bar or promise resolve krna pdta hai lkin axios mai data directly ata hai or http method ka use kr skte hai 
+
+
+Fetching no of problem solved on leetcode thorugh api
+{
+  "data": {
+    "matchedUser": {
+      "submitStats": {
+        "acSubmissionNum": [
+          {
+            "difficulty": "All",
+            "count": 175
+          },
+          {
+            "difficulty": "Easy",
+            "count": 80
+          },
+          {
+            "difficulty": "Medium",
+            "count": 70
+          },
+          {
+            "difficulty": "Hard",
+            "count": 25
+          }
+        ]
+      }
+    }
+  }
+}
+
+const stats =
+data.data.matchedUser.submitStats.acSubmissionNum;
+
+
+Optinal chanining:
+data?.totalSolved
+
+if(data exists)
+    return data.totalSolved
+else
+    return undefined
+
+
+
+APP USE FLOW (HOW APP WORKS WHAT IS THE FLOW OF LEETCODE STREAK GUARD)
+User Registers
+        │
+        ▼
+MongoDB Stores User
+        │
+        ▼
+5:30 AM IST
+Daily Baseline Update
+        │
+        ▼
+Fetch LeetCode Count
+        │
+        ▼
+Save as lastSolvedCount
+        │
+        ▼
+User Solves Problems (or not)
+        │
+        ▼
+10:00 PM IST
+Reminder Check
+        │
+        ▼
+Fetch Current Count
+        │
+        ▼
+Compare with Baseline
+        │
+ ┌──────┴──────┐
+ │             │
+ ▼             ▼
+Solved      Not Solved
+ │             │
+ ▼             ▼
+No Alert   Send Telegram Reminder
+ │             │
+ └──────┬──────┘
+        │
+        ▼
+Wait for Next Day
+        │
+        ▼
+5:30 AM IST Baseline Update

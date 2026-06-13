@@ -1,5 +1,7 @@
 const axios = require("axios");
 
+
+// JavaScript has setTimeout(), but it does not have a built-in way to "pause" an async function using await so sleep function is made
 function sleep(ms) {
     return new Promise(resolve =>
         setTimeout(resolve, ms)
@@ -31,6 +33,7 @@ async function sendMessage(chatId, message) {
             );
 
             // Handle Telegram rate limit
+            // 429 is use to identify rate limit like if user frequently sending request it will limit it sleep the process for defuaalt 5 second or given parameter
             if (
                 error.response?.status === 429
             ) {
@@ -50,6 +53,7 @@ async function sendMessage(chatId, message) {
             }
 
             // Exponential backoff
+            // It's a retry strategy where the waiting time increases after each failure exponentially. if telegram server is having issue it will make attempt wait for 2,4,8.... second exponential
             if (attempt < 3) {
                 await sleep(
                     Math.pow(2, attempt) * 1000

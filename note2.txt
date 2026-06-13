@@ -1,3 +1,36 @@
+├── config
+│   └── db.js
+├── controllers
+│   ├── announceController.js
+│   ├── subscribeController.js
+│   ├── unsubscribeController.js
+│   └── userController.js
+├── cron
+│   ├── dailyUpdateCron.js
+│   └── reminderCron.js
+├── middleware
+│   └── adminAuth.js
+├── models
+│   └── User.js
+├── routes
+│   ├── authRoutes.js
+│   └── userRoutes.js
+├── services
+│   ├── announcementService.js
+│   ├── checkAllUsers.js
+│   ├── dailyUpdateService.js
+│   ├── leetcodeService.js
+│   ├── reminderService.js
+│   └── telegramService.js
+├── .gitignore
+├── README.md
+├── app.js
+├── bot.js
+├── package-lock.json
+├── package.json
+└── 
+
+
 controller
 ├── announceController.js
 ├── subscribeController.js
