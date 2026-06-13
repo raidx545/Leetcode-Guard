@@ -49,7 +49,10 @@ bot.onText(
             );
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                "[BOT ERROR]",
+                error.message
+            );
         }
     }
 );
@@ -84,7 +87,10 @@ bot.onText(
             );
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                "[BOT ERROR]",
+                error.message
+            );
         }
     }
 );

@@ -4,6 +4,13 @@ exports.subscribe = async (req, res) => {
     try {
         const { telegramChatId } = req.body;
 
+        if (!telegramChatId) {
+            return res.status(400).json({
+                success: false,
+                message: "Telegram Chat ID is required"
+            });
+        }
+
         const user = await User.findOne({
             telegramChatId
         });

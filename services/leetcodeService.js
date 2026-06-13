@@ -62,8 +62,7 @@ async function getTotalSolved(username) {
         };
 
     } catch (error) {
-        // Don't double-wrap errors - throw original message
-        throw new Error(error.message);
+        throw error;
     }
 }
 

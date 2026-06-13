@@ -28,7 +28,7 @@ async function checkAllUsers() {
 
 
                 console.log(
-                    `${user.leetcodeUsername} => ${result.reason}`
+                    `[Reminder] ${user.leetcodeUsername} => ${result.reason}`
                 );
 
                 // Telegram safety delay
