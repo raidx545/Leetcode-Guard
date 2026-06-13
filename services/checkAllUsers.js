@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const { checkUser } = require("./reminderService");
 
 let isRunning = false;
