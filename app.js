@@ -16,6 +16,11 @@ app.use('/api/users', userRoutes);
 
 app.use('/api', authRoutes);
 
+
+app.get("/", (req, res) => {
+    res.send("LeetCode Guard API is running!");
+});
+
 app.get("/health", (req, res) => {
     res.status(200).json({
         status: "ok",
