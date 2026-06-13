@@ -40,7 +40,7 @@ async function checkUser(user) {
             try {
                 await telegramService.sendMessage(
                     user.telegramChatId,
-                    `⚠️ Hey ${user.leetcodeUsername}, don't lose your streak!`
+                    `⚠️ Hey ${user.leetcodeUsername}, Don't lose your streak!`
                 );
 
                 user.lastReminderDate =

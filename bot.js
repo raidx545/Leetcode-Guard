@@ -11,7 +11,7 @@ const bot = new TelegramBot(
 bot.onText(/\/start/, (msg) => {
     bot.sendMessage(
         msg.chat.id,
-        `Welcome!
+        `Welcome to Leetcode Streak Guard Bot😊. Happy Coding!
 
 Your Chat ID is:
 
@@ -80,7 +80,7 @@ bot.onText(
 
             bot.sendMessage(
                 chatId,
-                "✅ Reminders disabled."
+                "Reminders disabled. To start again You can subscribe again!"
             );
 
         } catch (error) {
