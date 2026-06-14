@@ -1,13 +1,12 @@
-const app = require('./app');
+const app = require("./app");
 const PORT = process.env.PORT || 3001;
-const connectDB = require('./config/db');
+const connectDB = require("./config/db");
 
 async function startServer() {
     try {
         await connectDB();
 
-        require("./cron/reminderCron");
-        require("./cron/dailyUpdateCron");
+        // Start Telegram Bot
         require("./bot");
 
         app.listen(PORT, () => {
@@ -17,7 +16,11 @@ async function startServer() {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error(
+            "Failed to start server:",
+            error
+        );
+
         process.exit(1);
     }
 }

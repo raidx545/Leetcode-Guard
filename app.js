@@ -7,10 +7,15 @@ const userRoutes = require('./routes/userRoutes');
 
 const authRoutes = require('./routes/authRoutes');
 
+
+const jobRoutes = require("./routes/jobRoutes");
+
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
+app.use("/api/jobs", jobRoutes);
 
 
 
