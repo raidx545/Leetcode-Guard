@@ -1,5 +1,5 @@
 const express = require('express');
-
+const cors = require("cors");
 const app = express();
 
 
@@ -11,7 +11,20 @@ const authRoutes = require('./routes/authRoutes');
 const jobRoutes = require("./routes/jobRoutes");
 
 
+
+/*
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            "https://your-frontend.vercel.app"
+        ]
+    })
+);
+*/
+
 // Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
