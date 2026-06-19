@@ -231,42 +231,37 @@ No action is taken.
 
 ## Project Structure
 
-```text
+```
 ├── config
 │   └── db.js
-│
 ├── controllers
-│   ├── userController.js
 │   ├── announceController.js
+│   ├── jobController.js
 │   ├── subscribeController.js
-│   └── unsubscribeController.js
-│
-├── cron
-│   ├── dailyUpdateCron.js
-│   └── reminderCron.js
-│
+│   ├── unsubscribeController.js
+│   └── userController.js
 ├── middleware
 │   └── adminAuth.js
-│
 ├── models
-│   └── User.js
-│
+│   └── user.js
 ├── routes
 │   ├── authRoutes.js
+│   ├── jobRoutes.js
 │   └── userRoutes.js
-│
 ├── services
 │   ├── announcementService.js
 │   ├── checkAllUsers.js
-│   ├── checkUser.js
 │   ├── dailyUpdateService.js
 │   ├── leetcodeService.js
+│   ├── reminderService.js
 │   └── telegramService.js
-│
-├── bot.js
+├── .gitignore
+├── README.md
 ├── app.js
-├── server.js
-└── package.json
+├── bot.js
+├── package-lock.json
+├── package.json
+└── server.js
 ```
 
 ## Environment Variables
@@ -374,7 +369,7 @@ The application is deployed using:
 
 - Render
 - MongoDB Atlas
-- UptimeRobot
+- UptimeRobot (now updated with the cronjob.org)
 
 Cron jobs handle:
 
