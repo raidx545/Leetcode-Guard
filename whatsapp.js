@@ -7,6 +7,7 @@ const User = require('./models/user');
 const { getTotalSolved } = require('./services/leetcodeService');
 
 let sock = null;
+const processedMessages = new Set();
 
 async function startWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
@@ -15,6 +16,13 @@ async function startWhatsApp() {
     sock = makeWASocket({
         version,
         auth: state,
+        syncFullHistory: false,
+        connectTimeoutMs: 60000,
+        fireInitQueries: false,
+        markOnlineOnConnect: false,
+        shouldIgnoreJid: (jid) => {
+            return jid?.endsWith('@broadcast') || jid?.endsWith('@g.us');
+        },
     });
 
     // Save credentials whenever they update
@@ -54,8 +62,18 @@ async function startWhatsApp() {
     // Handle incoming messages (chat commands)
     sock.ev.on('messages.upsert', async ({ messages }) => {
         for (const msg of messages) {
+            // Debug: log every incoming message
+            console.log('[WhatsApp] Message received from:', msg.key.remoteJid, 'fromMe:', msg.key.fromMe);
+
             // Skip messages sent by us, or messages without text
             if (msg.key.fromMe) continue;
+
+            // Skip duplicate messages
+            const msgId = msg.key.id;
+            if (processedMessages.has(msgId)) continue;
+            processedMessages.add(msgId);
+            // Keep the set from growing forever
+            if (processedMessages.size > 1000) processedMessages.clear();
 
             const text = msg.message?.conversation
                 || msg.message?.extendedTextMessage?.text
@@ -63,9 +81,8 @@ async function startWhatsApp() {
 
             if (!text.startsWith('!')) continue;
 
-            // Extract phone number from sender JID (e.g., '919876543210@s.whatsapp.net')
             const senderJid = msg.key.remoteJid;
-            const whatsappNumber = senderJid.replace('@s.whatsapp.net', '');
+            const whatsappNumber = senderJid.replace('@s.whatsapp.net', '').replace('@lid', '');
 
             const [command, ...args] = text.trim().split(/\s+/);
 
@@ -73,25 +90,25 @@ async function startWhatsApp() {
                 switch (command.toLowerCase()) {
                     case '!start':
                         await sock.sendMessage(senderJid, {
-                            text: `Welcome to LeetCode Streak Guard! 😊 Happy Coding!\n\nYour WhatsApp number: ${whatsappNumber}\n\nAvailable commands:\n!register <username> - Register your LeetCode account\n!subscribe - Enable reminders\n!unsubscribe - Disable reminders\n!help - Show this message`
+                            text: `Welcome to LeetCode Streak Guard! 😊 Happy Coding!\n\nAvailable commands:\n!register <username> <phone_number> - Register your LeetCode account\n!subscribe <phone_number> - Enable reminders\n!unsubscribe <phone_number> - Disable reminders\n!help - Show this message`
                         });
                         break;
 
                     case '!register':
-                        await handleRegister(senderJid, whatsappNumber, args[0]);
+                        await handleRegister(senderJid, args[0], args[1]);
                         break;
 
                     case '!subscribe':
-                        await handleSubscribe(senderJid, whatsappNumber);
+                        await handleSubscribe(senderJid, args[0] || whatsappNumber);
                         break;
 
                     case '!unsubscribe':
-                        await handleUnsubscribe(senderJid, whatsappNumber);
+                        await handleUnsubscribe(senderJid, args[0] || whatsappNumber);
                         break;
 
                     case '!help':
                         await sock.sendMessage(senderJid, {
-                            text: `📋 LeetCode Streak Guard Commands:\n\n!start - Welcome message\n!register <username> - Register your LeetCode account\n!subscribe - Enable reminders\n!unsubscribe - Disable reminders\n!help - Show this help message`
+                            text: `📋 LeetCode Streak Guard Commands:\n\n!start - Welcome message\n!register <username> <phone_number> - Register your LeetCode account\n!subscribe <phone_number> - Enable reminders\n!unsubscribe <phone_number> - Disable reminders\n!help - Show this help message`
                         });
                         break;
 
@@ -143,9 +160,16 @@ async function handleUnsubscribe(jid, whatsappNumber) {
     });
 }
 
-async function handleRegister(jid, whatsappNumber, leetcodeUsername) {
-    if (!leetcodeUsername) {
-        return sock.sendMessage(jid, { text: '❌ Please provide your LeetCode username.\nExample: !register raidx_' });
+async function handleRegister(jid, leetcodeUsername, phoneNumber) {
+    if (!leetcodeUsername || !phoneNumber) {
+        return sock.sendMessage(jid, { text: '❌ Please provide both your LeetCode username and phone number (with country code).\nExample: !register raidx_ 917078525809' });
+    }
+
+    // Clean up phone number - remove +, spaces, dashes
+    const whatsappNumber = phoneNumber.replace(/[^0-9]/g, '');
+
+    if (whatsappNumber.length < 10) {
+        return sock.sendMessage(jid, { text: '❌ Invalid phone number. Use country code + number.\nExample: 917078525809 (91 = India)' });
     }
 
     try {
@@ -169,7 +193,7 @@ async function handleRegister(jid, whatsappNumber, leetcodeUsername) {
         });
 
         await sock.sendMessage(jid, {
-            text: `✅ Successfully registered!\n\nUsername: ${leetcodeUsername}\nTotal Solved: ${lcData.totalSolved}\n\nYou will now receive daily reminders if you haven't solved a problem! 🎉`
+            text: `✅ Successfully registered!\n\nUsername: ${leetcodeUsername}\nPhone: ${whatsappNumber}\nTotal Solved: ${lcData.totalSolved}\n\nYou will now receive daily reminders if you haven't solved a problem! 🎉`
         });
     } catch (error) {
         await sock.sendMessage(jid, { text: `❌ Registration failed: ${error.message}` });

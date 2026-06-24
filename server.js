@@ -1,6 +1,9 @@
 const app = require("./app");
 const PORT = process.env.PORT || 3001;
 const connectDB = require("./config/db");
+const cron = require("node-cron");
+const { checkAllUsers } = require("./services/checkAllUsers");
+const { updateAllUsers } = require("./services/dailyUpdateService");
 
 async function startServer() {
     try {
@@ -19,6 +22,30 @@ async function startServer() {
             console.error('[WhatsApp] Failed to start:', err.message);
         });
 
+        // Schedule: Send reminders at 11:00 PM IST every day
+        cron.schedule("0 23 * * *", async () => {
+            console.log("[Cron] Running reminder job at 11:00 PM IST...");
+            try {
+                await checkAllUsers();
+                console.log("[Cron] Reminder job completed.");
+            } catch (error) {
+                console.error("[Cron] Reminder job failed:", error.message);
+            }
+        }, { timezone: "Asia/Kolkata" });
+
+        // Schedule: Daily update at 12:00 AM IST (reset baselines)
+        cron.schedule("0 0 * * *", async () => {
+            console.log("[Cron] Running daily update at midnight IST...");
+            try {
+                await updateAllUsers();
+                console.log("[Cron] Daily update completed.");
+            } catch (error) {
+                console.error("[Cron] Daily update failed:", error.message);
+            }
+        }, { timezone: "Asia/Kolkata" });
+
+        console.log("[Cron] Scheduled: Reminders at 11:00 PM IST, Daily update at 12:00 AM IST");
+
     } catch (error) {
         console.error(
             "Failed to start server:",
@@ -30,10 +57,6 @@ async function startServer() {
 }
 
 startServer();
-
-
-
-
 
 
 
