@@ -2,7 +2,7 @@
 
 Never lose your LeetCode streak again.
 
-LeetCode Streak Guard is a Telegram-based reminder system that monitors a user's LeetCode activity and sends automated reminders when they haven't solved a problem for the current LeetCode day.
+LeetCode Streak Guard is a WhatsApp-based reminder system that monitors a user's LeetCode activity and sends automated reminders when they haven't solved a problem for the current LeetCode day.
 
 The project is designed to solve a simple but common problem faced by many developers: forgetting to solve at least one problem and accidentally breaking a long-running LeetCode streak.
 
@@ -18,7 +18,7 @@ LeetCode Streak Guard acts as a safety net by:
 
 - Tracking a user's solved problem count.
 - Detecting whether the count has increased during the current LeetCode day.
-- Sending Telegram reminders before the day ends if no progress has been made.
+- Sending WhatsApp reminders before the day ends if no progress has been made.
 
 ---
 
@@ -29,7 +29,7 @@ LeetCode Streak Guard acts as a safety net by:
 Users register using their:
 
 - LeetCode Username
-- Telegram Chat ID
+- WhatsApp Phone Number (with country code, e.g., `919876543210`)
 
 The system stores user information securely in MongoDB.
 
@@ -59,7 +59,7 @@ At 10:00 PM IST, the system:
 
 If no new problems have been solved:
 
-- A Telegram reminder is automatically sent.
+- A WhatsApp reminder is automatically sent.
 
 Example reminder:
 
@@ -75,14 +75,22 @@ The system tracks reminder history and prevents duplicate notifications.
 
 ---
 
-### Telegram Bot Integration
+### WhatsApp Integration
 
-The application uses Telegram Bot API to:
+The application uses `@whiskeysockets/baileys` (WhatsApp Web API) to:
 
-- Register users
-- Store chat IDs
-- Deliver reminders
+- Deliver reminders to registered users
+- Handle chat commands (!subscribe, !unsubscribe)
 - Send admin announcements
+
+**WhatsApp Chat Commands:**
+
+| Command | Description |
+|---|---|
+| `!start` | Welcome message with your WhatsApp number |
+| `!subscribe` | Enable reminders |
+| `!unsubscribe` | Disable reminders |
+| `!help` | Show available commands |
 
 ---
 
@@ -123,11 +131,7 @@ Examples:
 
 ### Messaging
 
-- Telegram Bot API
-
-### Scheduling
-
-- node-cron
+- WhatsApp (via @whiskeysockets/baileys)
 
 ### Deployment
 
@@ -135,7 +139,7 @@ Examples:
 
 ### Monitoring
 
-- UptimeRobot
+- UptimeRobot / cronjob.org
 
 ---
 
@@ -144,7 +148,7 @@ Examples:
 User
 │
 ▼
-Telegram Bot
+WhatsApp Client (Baileys)
 │
 ▼
 Express Backend
@@ -153,7 +157,7 @@ Express Backend
 │
 ├── LeetCode GraphQL API
 │
-└── Telegram API
+└── WhatsApp (send messages)
 
 ---
 
@@ -161,18 +165,26 @@ Express Backend
 
 ### Step 1: User Registration
 
-User starts the Telegram bot.
-
-The application stores:
+Register via the REST API with:
 
 - LeetCode Username
-- Telegram Chat ID
+- WhatsApp Phone Number (with country code)
 
-in MongoDB.
+Data is stored in MongoDB.
 
 ---
 
-### Step 2: Daily Baseline Update
+### Step 2: First-Time Setup
+
+On first server start:
+
+- A QR code is displayed in the terminal.
+- Scan it with your phone's WhatsApp (Settings → Linked Devices → Link a Device).
+- Session is saved locally in `auth_info/` — no re-scan needed on restart.
+
+---
+
+### Step 3: Daily Baseline Update
 
 Every day at LeetCode reset time:
 
@@ -194,7 +206,7 @@ lastSolvedCount = 150
 
 ---
 
-### Step 3: User Activity
+### Step 4: User Activity
 
 The user solves problems throughout the day.
 
@@ -208,7 +220,7 @@ The system detects progress automatically.
 
 ---
 
-### Step 4: Reminder Check
+### Step 5: Reminder Check
 
 At 10:00 PM IST:
 
@@ -221,7 +233,7 @@ If:
 
 currentSolved <= baseline
 
-A reminder is sent.
+A reminder is sent via WhatsApp.
 
 Otherwise:
 
@@ -254,11 +266,11 @@ No action is taken.
 │   ├── dailyUpdateService.js
 │   ├── leetcodeService.js
 │   ├── reminderService.js
-│   └── telegramService.js
+│   └── whatsappService.js
 ├── .gitignore
 ├── README.md
 ├── app.js
-├── bot.js
+├── whatsapp.js
 ├── package-lock.json
 ├── package.json
 └── server.js
@@ -271,12 +283,14 @@ Create a `.env` file:
 ```env
 PORT=3001
 
-MONGODB_URI=your_mongodb_uri
-
-BOT_TOKEN=your_telegram_bot_token
+DATABASE_URI=your_mongodb_uri
 
 ADMIN_TOKEN=your_admin_token
+
+CRON_SECRET=your_cron_secret
 ```
+
+> **Note:** No bot token is needed. WhatsApp authentication is handled via QR code scan on first startup.
 
 ## Installation
 
@@ -306,6 +320,8 @@ Start the server:
 npm start
 ```
 
+On first start, scan the QR code displayed in the terminal with your WhatsApp app.
+
 ---
 
 ## API Endpoints
@@ -313,7 +329,7 @@ npm start
 ### Register User
 
 ```http
-POST /register
+POST /api/register
 ```
 
 Request Body:
@@ -321,7 +337,41 @@ Request Body:
 ```json
 {
   "leetcodeUsername": "your_username",
-  "telegramChatId": "123456789"
+  "whatsappNumber": "919876543210"
+}
+```
+
+> **Note:** WhatsApp number must include the country code without `+` or spaces (e.g., `919876543210` for India).
+
+---
+
+### Subscribe (Enable Reminders)
+
+```http
+POST /api/subscribe
+```
+
+Request Body:
+
+```json
+{
+  "whatsappNumber": "919876543210"
+}
+```
+
+---
+
+### Unsubscribe (Disable Reminders)
+
+```http
+POST /api/unsubscribe
+```
+
+Request Body:
+
+```json
+{
+  "whatsappNumber": "919876543210"
 }
 ```
 
@@ -330,7 +380,7 @@ Request Body:
 ### Send Announcement
 
 ```http
-POST /announce
+POST /api/announce
 ```
 
 Headers:
@@ -369,7 +419,7 @@ The application is deployed using:
 
 - Render
 - MongoDB Atlas
-- UptimeRobot (now updated with the cronjob.org)
+- cronjob.org (external cron for triggering daily updates and reminders)
 
 Cron jobs handle:
 
@@ -385,7 +435,7 @@ This project helped me learn:
 - Backend Development with Node.js
 - REST APIs
 - MongoDB & Mongoose
-- Telegram Bot Development
+- WhatsApp Automation with Baileys
 - Cron Jobs & Scheduling
 - External API Integration
 - Production Deployment

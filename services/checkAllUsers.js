@@ -31,7 +31,7 @@ async function checkAllUsers() {
                     `[Reminder] ${user.leetcodeUsername} => ${result.reason}`
                 );
 
-                // Telegram safety delay
+                // WhatsApp safety delay
                 await new Promise(resolve =>
                     setTimeout(resolve, 100)
                 );

@@ -2,17 +2,17 @@ const User = require("../models/user");
 
 exports.subscribe = async (req, res) => {
     try {
-        const { telegramChatId } = req.body;
+        const { whatsappNumber } = req.body;
 
-        if (!telegramChatId) {
+        if (!whatsappNumber) {
             return res.status(400).json({
                 success: false,
-                message: "Telegram Chat ID is required"
+                message: "WhatsApp number is required"
             });
         }
 
         const user = await User.findOne({
-            telegramChatId
+            whatsappNumber
         });
 
         if (!user) {

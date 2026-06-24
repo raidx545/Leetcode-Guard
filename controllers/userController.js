@@ -6,13 +6,13 @@ exports.register = async (req, res) => {
     try {
         const {
             leetcodeUsername,
-            telegramChatId
+            whatsappNumber
         } = req.body;
 
-        if (!leetcodeUsername || !telegramChatId) {
+        if (!leetcodeUsername || !whatsappNumber) {
             return res.status(400).json({
                 status: "fail",
-                message: "LeetCode username and Telegram Chat ID are required"
+                message: "LeetCode username and WhatsApp number are required"
             });
         }
 
@@ -31,20 +31,20 @@ exports.register = async (req, res) => {
             });
         }
 
-        const existingTelegram = await User.findOne({
-            telegramChatId
+        const existingWhatsApp = await User.findOne({
+            whatsappNumber
         });
 
-        if (existingTelegram) {
+        if (existingWhatsApp) {
             return res.status(400).json({
                 status: "fail",
-                message: "Telegram account already registered"
+                message: "WhatsApp number already registered"
             });
         }
 
         const user = await User.create({
             leetcodeUsername,
-            telegramChatId,
+            whatsappNumber,
             lastSolvedCount: lcData.totalSolved,
             isActive: true
         });
@@ -72,7 +72,7 @@ exports.createUser = async (req, res) => {
     try {
         const user = await User.create({
             leetcodeUsername,
-            telegramChatId,
+            whatsappNumber,
             lastSolvedCount: lcData.totalSolved,
             isActive: true
         });

@@ -1,5 +1,5 @@
 const { getTotalSolved } = require("./leetcodeService");
-const telegramService = require("./telegramService");
+const whatsappService = require("./whatsappService");
 
 async function checkUser(user) {
     try {
@@ -38,9 +38,9 @@ async function checkUser(user) {
 
         if (shouldRemind) {
             try {
-                await telegramService.sendMessage(
-                    user.telegramChatId,
-                    `⚠️ Hey ${user.leetcodeUsername},You haven't solved problem today, Don't lose your streak!`
+                await whatsappService.sendMessage(
+                    user.whatsappNumber,
+                    `⚠️ Hey ${user.leetcodeUsername}, you haven't solved a problem today. Don't lose your streak!`
                 );
 
                 user.lastReminderDate =
@@ -50,14 +50,14 @@ async function checkUser(user) {
 
             } catch (error) {
                 console.error(
-                    `Telegram failed for ${user.leetcodeUsername}:`,
+                    `WhatsApp failed for ${user.leetcodeUsername}:`,
                     error.message
                 );
 
                 return {
                     reminded: false,
                     reason:
-                        "Telegram failed",
+                        "WhatsApp failed",
                     currentSolved:
                         totalSolved
                 };

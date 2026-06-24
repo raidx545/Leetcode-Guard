@@ -6,13 +6,17 @@ async function startServer() {
     try {
         await connectDB();
 
-        // Start Telegram Bot
-        require("./bot");
-
+        // Start Express first so API is available
         app.listen(PORT, () => {
             console.log(
                 `Server running on port ${PORT}`
             );
+        });
+
+        // Start WhatsApp Client (non-blocking)
+        const { startWhatsApp } = require('./whatsapp');
+        startWhatsApp().catch(err => {
+            console.error('[WhatsApp] Failed to start:', err.message);
         });
 
     } catch (error) {

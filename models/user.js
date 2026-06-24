@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             unique: true
         },
-        telegramChatId: {
+        whatsappNumber: {
             type: String,
             required: true,
             unique: true

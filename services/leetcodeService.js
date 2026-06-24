@@ -3,6 +3,8 @@
  * Just fetches total problems solved by a user
  */
 
+const axios = require('axios');
+
 async function getTotalSolved(username) {
     // Validate username
     if (!username || username.trim() === '') {
@@ -23,23 +25,21 @@ async function getTotalSolved(username) {
     `;
 
     try {
-        const response = await fetch('https://leetcode.com/graphql', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+        const { data } = await axios.post(
+            'https://leetcode.com/graphql',
+            {
                 query,
                 variables: { username: username.trim() }
-            })
-        });
-
-        // Check HTTP status before parsing
-        if (!response.ok) {
-            throw new Error(`LeetCode API returned ${response.status}`);
-        }
-
-        const data = await response.json();
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                    'Referer': 'https://leetcode.com',
+                },
+                timeout: 15000,
+            }
+        );
 
         // Check if user exists
         if (!data.data || !data.data.matchedUser) {

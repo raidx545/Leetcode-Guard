@@ -1,5 +1,5 @@
 const User = require("../models/user");
-const telegramService = require("./telegramService");
+const whatsappService = require("./whatsappService");
 
 async function sendAnnouncement(message) {
     const users = await User.find({
@@ -11,8 +11,8 @@ async function sendAnnouncement(message) {
 
     for (const user of users) {
         try {
-            await telegramService.sendMessage(
-                user.telegramChatId,
+            await whatsappService.sendMessage(
+                user.whatsappNumber,
                 message
             );
 
