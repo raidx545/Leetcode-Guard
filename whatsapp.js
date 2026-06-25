@@ -162,14 +162,14 @@ async function handleUnsubscribe(jid, whatsappNumber) {
 
 async function handleRegister(jid, leetcodeUsername, phoneNumber) {
     if (!leetcodeUsername || !phoneNumber) {
-        return sock.sendMessage(jid, { text: '❌ Please provide both your LeetCode username and phone number (with country code).\nExample: !register raidx_ 917078525809' });
+        return sock.sendMessage(jid, { text: '❌ Please provide both your LeetCode username and phone number (with country code).\nExample: !register leetcode_user 919876543210' });
     }
 
     // Clean up phone number - remove +, spaces, dashes
     const whatsappNumber = phoneNumber.replace(/[^0-9]/g, '');
 
     if (whatsappNumber.length < 10) {
-        return sock.sendMessage(jid, { text: '❌ Invalid phone number. Use country code + number.\nExample: 917078525809 (91 = India)' });
+        return sock.sendMessage(jid, { text: '❌ Invalid phone number. Use country code + number.\nExample: 919876543210 (91 = India)' });
     }
 
     try {
