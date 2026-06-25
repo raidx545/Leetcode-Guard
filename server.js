@@ -22,9 +22,9 @@ async function startServer() {
             console.error('[WhatsApp] Failed to start:', err.message);
         });
 
-        // Schedule: Send reminders at 10:48 PM IST every day
-        cron.schedule("48 22 * * *", async () => {
-            console.log("[Cron] Running reminder job at 10:48 PM IST...");
+        // Schedule: Send reminders at 11:05 PM IST every day
+        cron.schedule("5 23 * * *", async () => {
+            console.log("[Cron] Running reminder job at 11:05 PM IST...");
             try {
                 await checkAllUsers();
                 console.log("[Cron] Reminder job completed.");
@@ -44,7 +44,7 @@ async function startServer() {
             }
         }, { timezone: "Asia/Kolkata" });
 
-        console.log("[Cron] Scheduled: Reminders at 10:48 PM IST, Daily update at 5:00 AM IST");
+        console.log("[Cron] Scheduled: Reminders at 11:05 PM IST, Daily update at 5:00 AM IST");
 
     } catch (error) {
         console.error(
